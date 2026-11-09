@@ -7,5 +7,5 @@
 // NUNCA coloque a service_role aqui.
 // ============================================================
 
-export const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
-export const SUPABASE_ANON_KEY = "SUA-ANON-OU-PUBLISHABLE-KEY";
+export const SUPABASE_URL = "https://iagihfsuggoqlwdlksjw.supabase.co";
+export const SUPABASE_ANON_KEY = "sb_publishable_wzj5BP3uWO6zzit-6zdWGA_3Seg6BEg";
