@@ -1,0 +1,4 @@
+# Configuração mínima do Supabase CLI.
+# Aplique as migrations com: supabase db push
+# ou cole o conteúdo de supabase/migrations/*.sql no SQL Editor do dashboard.
+project_id = "suporte-ti"

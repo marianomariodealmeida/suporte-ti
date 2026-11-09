@@ -1,0 +1,17 @@
+{
+  "name": "suporte-ti",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Central de suporte de TI alimentada por um grupo de WhatsApp",
+  "scripts": {
+    "connector:install": "npm --prefix connector install",
+    "connector:start": "npm --prefix connector start",
+    "connector:groups": "npm --prefix connector run groups",
+    "connector:test": "npm --prefix connector run test",
+    "dev": "npm --prefix connector run dev"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

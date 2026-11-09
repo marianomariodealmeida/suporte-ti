@@ -1,0 +1,23 @@
+{
+  "name": "suporte-ti-connector",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Conector Baileys: grupo de WhatsApp → Supabase",
+  "main": "src/index.mjs",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "dev": "node --watch src/index.mjs",
+    "groups": "node scripts/list-groups.mjs",
+    "test": "node scripts/test-classifier.mjs",
+    "selftest": "node scripts/selftest.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "pino": "^9.5.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

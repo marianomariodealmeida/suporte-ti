@@ -1,0 +1,27 @@
+# Dependências
+node_modules/
+connector/node_modules/
+
+# Segredos e configuração local
+.env
+connector/.env
+*.local
+!web/config.js
+
+# Sessão do WhatsApp (nunca versionar!)
+connector/data/
+data/
+
+# Logs
+logs/
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+supabase/.env

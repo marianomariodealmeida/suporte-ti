@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Suporte TI · Central de Chamados</title>
+    <meta name="description" content="Central de chamados de TI alimentada pelo grupo de WhatsApp." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Erro de configuração -->
+    <div id="config-error" class="config-error hidden">
+      <div class="config-card">
+        <div class="config-icon">⚙️</div>
+        <h1>Configuração pendente</h1>
+        <p>
+          Edite o arquivo <code>web/config.js</code> e preencha
+          <code>SUPABASE_URL</code> e <code>SUPABASE_ANON_KEY</code> com os dados do
+          seu projeto Supabase (Project Settings → API).
+        </p>
+        <p class="muted">Depois recarregue esta página.</p>
+      </div>
+    </div>
+
+    <!-- Login -->
+    <section id="login-screen" class="login-screen hidden">
+      <div class="login-card">
+        <div class="login-brand">
+          <div class="logo">🛠️</div>
+          <div>
+            <h1>Suporte TI</h1>
+            <p>Central de chamados do WhatsApp</p>
+          </div>
+        </div>
+        <form id="login-form" autocomplete="on">
+          <label for="login-email">E-mail</label>
+          <input id="login-email" type="email" autocomplete="username" required placeholder="voce@empresa.com" />
+          <label for="login-password">Senha</label>
+          <input id="login-password" type="password" autocomplete="current-password" required placeholder="••••••••" />
+          <button class="btn btn-primary btn-block" type="submit">Entrar</button>
+          <p id="login-error" class="error-text" role="alert"></p>
+        </form>
+        <p class="login-hint">
+          Acesso restrito à equipe de TI. Usuários são criados pelo administrador
+          no painel do Supabase.
+        </p>
+      </div>
+    </section>
+
+    <!-- Aplicação -->
+    <div id="app" class="app hidden">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="logo">🛠️</div>
+          <div>
+            <strong>Suporte TI</strong>
+            <span>WhatsApp → Dashboard</span>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item active" data-view="overview">
+            <span class="nav-icon">📊</span> Visão geral
+          </button>
+          <button class="nav-item" data-view="board">
+            <span class="nav-icon">🗂️</span> Chamados
+            <span id="nav-pending" class="nav-badge hidden">0</span>
+          </button>
+          <button class="nav-item" data-view="stats">
+            <span class="nav-icon">📈</span> Estatísticas
+          </button>
+          <button class="nav-item" data-view="settings">
+            <span class="nav-icon">⚙️</span> Configurações
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-box">
+            <div id="user-avatar" class="avatar">?</div>
+            <div class="user-meta">
+              <strong id="user-name">—</strong>
+              <span id="user-role">—</span>
+            </div>
+          </div>
+          <button id="logout" class="btn btn-ghost btn-sm">Sair</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div class="topbar-title">
+            <h1 id="page-title">Visão geral</h1>
+            <p id="page-subtitle">Acompanhe os chamados abertos no grupo de WhatsApp</p>
+          </div>
+          <div class="topbar-actions">
+            <span id="live-status" class="live-pill" title="Tempo real">
+              <span class="live-dot"></span> ao vivo
+            </span>
+            <span id="last-sync" class="muted small"></span>
+            <button id="refresh" class="btn btn-ghost btn-sm" title="Atualizar">↻ Atualizar</button>
+          </div>
+        </header>
+
+        <div class="main-scroll">
+          <!-- VISÃO GERAL -->
+          <section id="view-overview" class="view">
+            <div id="overview-cards" class="stat-grid"></div>
+            <div class="grid-2">
+              <div class="panel">
+                <div class="panel-head">
+                  <h2>Chamados por categoria</h2>
+                </div>
+                <div class="chart-wrap"><canvas id="chart-overview-category"></canvas></div>
+              </div>
+              <div class="panel">
+                <div class="panel-head">
+                  <h2>SLA em risco</h2>
+                  <span class="muted small">pendentes ou em andamento</span>
+                </div>
+                <div id="overview-sla" class="list"></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Últimos chamados</h2>
+                <button class="btn btn-ghost btn-sm" data-goto="board">Ver todos →</button>
+              </div>
+              <div id="overview-recent" class="list"></div>
+            </div>
+          </section>
+
+          <!-- CHAMADOS -->
+          <section id="view-board" class="view hidden">
+            <div class="filters">
+              <input id="filter-q" type="search" placeholder="Buscar por protocolo, solicitante ou texto…" />
+              <select id="filter-category"><option value="all">Todas as categorias</option></select>
+              <select id="filter-priority">
+                <option value="all">Todas as prioridades</option>
+                <option value="urgent">Urgente</option>
+                <option value="high">Alta</option>
+                <option value="medium">Média</option>
+                <option value="low">Baixa</option>
+              </select>
+              <select id="filter-assignee"><option value="all">Todos os responsáveis</option></select>
+              <button id="filter-clear" class="btn btn-ghost btn-sm">Limpar</button>
+            </div>
+            <div id="board" class="board"></div>
+          </section>
+
+          <!-- ESTATÍSTICAS -->
+          <section id="view-stats" class="view hidden">
+            <div id="stats-cards" class="stat-grid"></div>
+            <div class="grid-2">
+              <div class="panel">
+                <div class="panel-head"><h2>Por status</h2></div>
+                <div class="chart-wrap chart-square"><canvas id="chart-status"></canvas></div>
+              </div>
+              <div class="panel">
+                <div class="panel-head"><h2>Por categoria</h2></div>
+                <div class="chart-wrap"><canvas id="chart-category"></canvas></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Volume nos últimos 14 dias</h2>
+                <span class="muted small">abertos vs. concluídos</span>
+              </div>
+              <div class="chart-wrap"><canvas id="chart-volume"></canvas></div>
+            </div>
+            <div class="grid-2">
+              <div class="panel">
+                <div class="panel-head"><h2>Top solicitantes</h2></div>
+                <div class="chart-wrap chart-square"><canvas id="chart-requesters"></canvas></div>
+              </div>
+              <div class="panel">
+                <div class="panel-head"><h2>Por prioridade</h2></div>
+                <div class="chart-wrap chart-square"><canvas id="chart-priority"></canvas></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- CONFIGURAÇÕES -->
+          <section id="view-settings" class="view hidden">
+            <div class="grid-2">
+              <div class="panel">
+                <div class="panel-head">
+                  <h2>Coleta do WhatsApp</h2>
+                  <span id="settings-admin-hint" class="muted small"></span>
+                </div>
+                <form id="settings-form" class="form">
+                  <label for="set-groups">IDs dos grupos monitorados</label>
+                  <textarea id="set-groups" rows="3" placeholder="1203630...@g.us, 1203631...@g.us"></textarea>
+                  <p class="field-hint">
+                    Rode <code>npm run connector:groups</code> no conector para listar os IDs.
+                    Use <code>*</code> para monitorar todos os grupos.
+                  </p>
+
+                  <div class="form-row">
+                    <div>
+                      <label for="set-sla">SLA (horas)</label>
+                      <input id="set-sla" type="number" min="1" max="720" />
+                    </div>
+                    <div>
+                      <label for="set-merge">Agrupar mensagens (min)</label>
+                      <input id="set-merge" type="number" min="0" max="1440" />
+                    </div>
+                  </div>
+
+                  <label class="switch-row">
+                    <input id="set-auto" type="checkbox" />
+                    <span>Criar chamados automaticamente</span>
+                  </label>
+                  <label class="switch-row">
+                    <input id="set-ai" type="checkbox" />
+                    <span>Usar IA para classificar casos ambíguos</span>
+                  </label>
+
+                  <button class="btn btn-primary" type="submit">Salvar configurações</button>
+                </form>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h2>Equipe</h2>
+                  <span class="muted small">perfis cadastrados</span>
+                </div>
+                <div id="settings-profiles" class="list"></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h2>Categorias</h2>
+                <span class="muted small">palavras-chave usadas pelo classificador</span>
+              </div>
+              <div id="settings-categories" class="category-list"></div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- Drawer do chamado -->
+    <div id="drawer-overlay" class="drawer-overlay hidden"></div>
+    <aside id="drawer" class="drawer hidden" aria-label="Detalhes do chamado">
+      <div id="drawer-content"></div>
+    </aside>
+
+    <div id="toasts" class="toasts"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
